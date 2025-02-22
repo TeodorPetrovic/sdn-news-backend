@@ -42,8 +42,7 @@ sequelize.authenticate()
 // Register with Consul (using native HTTP)
 function registerWithConsul() {
   const hostname = os.hostname();
-  const uniqueSuffix = Math.floor(Math.random() * 10000);
-  const serviceId = `${process.env.SERVICE_NAME}-${hostname}-${uniqueSuffix}`;
+  const serviceId = `${process.env.SERVICE_NAME}-${hostname}-${process.env.INSTANCE_ID}`;
   const consulHost = process.env.CONSUL_HOST || 'localhost';
   const consulPort = Number(process.env.CONSUL_PORT) || 8500;
   console.log("APP Hostname: ", process.env.HOSTNAME);
