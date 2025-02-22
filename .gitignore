@@ -1,0 +1,19 @@
+# npm
+node_modules
+package-lock.json
+bun.lock
+npm-shrinkwrap.json
+*.log
+*.gz
+
+# Coveralls
+.nyc_output
+coverage
+.env
+ansible/deploy-app.yml
+
+# Benchmarking
+benchmarks/graphs
+
+# ignore additional files using core.excludesFile
+# https://git-scm.com/docs/gitignore

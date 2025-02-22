@@ -1,0 +1,3 @@
+.\consul.exe agent -config-file="config.hcl"
+
+ansible-playbook -i inventory.ini deploy_app.yml

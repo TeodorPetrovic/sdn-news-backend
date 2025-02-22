@@ -1,0 +1,102 @@
+- name: Deploy Express App to VPS
+  hosts: vps_servers
+  become: yes
+  vars:
+    # App will be placed inside /home/{{ ansible_user }}/apps/sdn-news-backend
+    app_path: "/home/{{ ansible_user }}/apps/app-name"
+    repo_url: "https://github.com/username/repo-name.git"
+    env_contents: |
+      PORT=3000
+      HOSTNAME={{ hostvars[inventory_hostname].ansible_host }}
+      DB_NAME=db
+      DB_USERNAME=user
+      DB_PASSWORD=password
+      DB_HOST=localhost
+      DB_DIALECT=mysql
+      CONSUL_HOST=localhost
+      CONSUL_PORT=8500
+      SERVICE_NAME=service
+
+  tasks:
+    - name: Ensure git is installed
+      package:
+        name: git
+        state: present
+
+    - name: Check if Node.js is installed
+      command: node --version
+      register: node_version
+      ignore_errors: yes
+
+    - name: Ensure curl is installed (required for Node.js installation)
+      package:
+        name: curl
+        state: present
+      when: node_version.rc != 0
+
+    - name: Download Node.js setup script for v22.x
+      get_url:
+        url: https://deb.nodesource.com/setup_22.x
+        dest: /tmp/nodesource_setup.sh
+        mode: '0755'
+      when: node_version.rc != 0
+
+    - name: Run Node.js setup script
+      command: bash /tmp/nodesource_setup.sh
+      when: node_version.rc != 0
+
+    - name: Install Node.js v22.x
+      package:
+        name: nodejs
+        state: present
+      when: node_version.rc != 0
+
+    - name: Clone repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_path }}"
+        version: HEAD
+        force: yes
+
+    - name: Copy .env file
+      copy:
+        content: "{{ env_contents }}"
+        dest: "{{ app_path }}/.env"
+        owner: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Install node dependencies
+      shell: npm install
+      args:
+        chdir: "{{ app_path }}"
+
+    - name: Create systemd service file for the app
+      copy:
+        dest: /etc/systemd/system/my-express-app.service
+        content: |
+          [Unit]
+          Description=My Express App
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ ansible_user }}
+          WorkingDirectory={{ app_path }}
+          ExecStart=/usr/bin/npm start
+          Restart=always
+          Environment=NODE_ENV=production
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+
+    - name: Enable and start my-express-app service
+      systemd:
+        name: my-express-app.service
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: Reload systemd
+      command: systemctl daemon-reload
