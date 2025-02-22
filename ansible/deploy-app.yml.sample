@@ -8,6 +8,7 @@
     env_contents: |
       PORT=3000
       HOSTNAME={{ hostvars[inventory_hostname].ansible_host }}
+      INSTANCE_ID={{ hostvars[inventory_hostname].ansible_host }}
       DB_NAME=db
       DB_USERNAME=user
       DB_PASSWORD=password
