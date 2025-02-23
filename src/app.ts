@@ -50,7 +50,7 @@ function registerWithConsul() {
   const registration = {
     ID: serviceId,
     Name: process.env.SERVICE_NAME,
-    Address: 'localhost',
+    Address: process.env.HOSTNAME,
     Port: Number(port),
     Tags: [
       "urlprefix-/api strip=/api weight=50", // load balancing tags
