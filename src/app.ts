@@ -52,6 +52,9 @@ function registerWithConsul() {
     Name: process.env.SERVICE_NAME,
     Address: 'localhost',
     Port: Number(port),
+    Tags: [
+      "urlprefix-/api strip=/api weight=50", // load balancing tags
+    ],
     Check: {
       HTTP: `http://${process.env.HOSTNAME}:${port}/health`,
       Interval: '10s'
